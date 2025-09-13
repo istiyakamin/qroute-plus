@@ -1,0 +1,76 @@
+---
+config:
+  layout: elk
+  theme: forest
+  themeVariables:
+    fontSize: 20px
+    fontFamily: ''
+    primaryColor: '#0E7C86'
+    primaryTextColor: '#ffffff'
+    primaryBorderColor: '#08545A'
+    secondaryColor: '#084C61'
+    tertiaryColor: '#226B80'
+    lineColor: '#0D5C63'
+    clusterBkg: '#E7F7F9'
+    clusterBorder: '#93D6DE'
+    edgeLabelBackground: '#E7F7F9'
+---
+flowchart TD
+    A1(["Start: Q-Route Plus Planning (Day d)"]) --> A2["Load Historical Data"]
+    A2 --> A3["Planner Settings (ε, ρ, λ, r, iters, M)"]
+    A3 --> B1["Compute Means μᵢ"]
+    B1 --> B2["Variances Dᵢᵢ + Shrinkage →  D ← (1−λ)D + λτ"]
+    B2 --> B3["Low-rank Factors L (rank r)"]
+    B3 --> B4["Deviation Caps bᵢ"]
+    B4 --> C1["Select Candidate Site j"]
+    C1 --> C2["Quantile Route Oracle: q ≤ C?"]
+    C2 -- &nbsp YES &nbsp &nbsp --> C4["Time-Window Forward Pass"]
+    C2 -- &nbsp NO &nbsp &nbsp --> C7{"Selective Skip?"}
+    C4 -- &nbsp FEASIBLE &nbsp &nbsp --> C6["Insert j  (update μ_R, g, Σ_D, b_R)"]
+    C4 -- &nbsp INFEASIBLE &nbsp &nbsp --> C7
+    C7 --  &nbsp SKIP &nbsp &nbsp  --> C8["Log Skip & Enforce Regularity H"]
+    C7 -- &nbsp RETRY &nbsp &nbsp --> C1
+    C8 --> C1
+    C6 --> D1["ALNS Iteration t: UCB Select Operator"]
+    D1 --> D2["Destroy/Repair Subprocess"]
+    D2 --> D3["Reward & Update Bandit"]
+    D3 --> D4{"Converged?"}
+    D4 -- &nbsp NO &nbsp &nbsp --> D1
+    D4 -- &nbsp YES &nbsp &nbsp --> E1["Allocate Weekly Risk: Σ e_{r,d} ≤ ρ"]
+    E1 --> E2{"Budget Met?"}
+    E2 -- &nbsp NO &nbsp &nbsp  --> D1
+    E2 -- &nbsp YES &nbsp &nbsp --> E3["Monte Carlo Evaluation (correlated)"]
+    E3 --> E4["KPIs: distance, hours, CO2, overflow"]
+    E4 --> E5["Reports & UI"]
+    E5 --> F1(["End: Publish Plan"])
+     A1:::start
+     A2:::proc
+     A3:::proc
+     B1:::proc
+     B2:::proc
+     B3:::proc
+     B4:::proc
+     C1:::proc
+     C2:::proc
+     C4:::proc
+     C7:::decision
+     C6:::proc
+     C8:::proc
+     D1:::io
+     D1:::proc
+     D2:::proc
+     D3:::proc
+     D4:::decision
+     E1:::proc
+     E2:::decision
+     E3:::proc
+     E4:::kpi
+     E5:::proc
+     F1:::endd
+    classDef start fill:#2E8B57,stroke:#1D5A3A,stroke-width:2px,color:#fff,font-weight:bold
+    classDef endd fill:#2E8B57,stroke:#1D5A3A,stroke-width:2px,color:#fff,font-weight:bold
+    classDef proc fill:#0E7C86,stroke:#08545A,stroke-width:1.5px,color:#fff
+    classDef decision fill:#F4C95D,stroke:#B38A1B,stroke-width:1.5px,color:#1a1a1a
+    classDef io fill:#2F9E44,stroke:#1F6E2F,stroke-width:1.5px,color:#fff
+    classDef kpi fill:#6A4C93,stroke:#4C366A,stroke-width:1.5px,color:#fff
+    classDef report fill:#345995,stroke:#274571,stroke-width:1.5px,color:#fff
